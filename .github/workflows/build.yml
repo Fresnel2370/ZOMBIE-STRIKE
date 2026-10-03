@@ -16,9 +16,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - name: Décompresser et compiler
+      - name: Décompresser
         run: |
           for z in *.zip; do [ -f "$z" ] && unzip -o "$z" -d project; done
+      - name: Corriger LANServer
+        run: |
+          F=$(find . -name LANServer.java | head -n1)
+          sed -i '/private void remove(WS w){/{s/private void remove(WS w){/private void remove(WS w){try{/;s/w\.room=null;}/}catch(Exception e){}w.room=null;}/}' "$F"
+      - name: Compiler
+        run: |
           DIR=$(dirname "$(find . -name settings.gradle -not -path './.git/*' | head -n1)")
           cd "$DIR"
           gradle assembleDebug --no-daemon
